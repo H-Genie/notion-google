@@ -3,8 +3,8 @@ import { notion, isNotionConfigured } from "@/lib/notion";
 import { extractTitle } from "@/lib/notion-utils";
 
 /**
- * Notion 검색 API (MCP notion-search와 유사한 기능)
- * GET /api/notion/search?q=검색어
+ * Notion 연동된 최근 페이지/DB 목록
+ * GET /api/notion/list?limit=20
  */
 export async function GET(request: NextRequest) {
   if (!isNotionConfigured() || !notion) {
@@ -14,18 +14,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const q = request.nextUrl.searchParams.get("q");
-  if (!q?.trim()) {
-    return NextResponse.json(
-      { error: "쿼리 파라미터 q가 필요합니다." },
-      { status: 400 }
-    );
-  }
+  const limit = Math.min(Number(request.nextUrl.searchParams.get("limit")) || 20, 50);
 
   try {
     const response = await notion.search({
-      query: q,
-      page_size: 20,
+      page_size: limit,
     });
 
     const results = (response.results ?? []).map((item: Record<string, unknown>) => ({
@@ -39,7 +32,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Notion 검색 실패: " + message },
+      { error: "Notion 목록 조회 실패: " + message },
       { status: 500 }
     );
   }

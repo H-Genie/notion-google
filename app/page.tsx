@@ -30,8 +30,20 @@ export default function Home() {
   return (
     <main style={{ padding: "2rem", maxWidth: 600, margin: "0 auto" }}>
       <h1 style={{ marginBottom: "1rem" }}>Ollama + Notion</h1>
-      <p style={{ color: "#666", marginBottom: "1.5rem" }}>
+      <p style={{ color: "#666", marginBottom: "0.5rem" }}>
         Ollama(localhost:11434)와 연동된 채팅입니다. Notion API는 환경 변수 설정 후 사용할 수 있습니다.
+      </p>
+      <p style={{ marginBottom: "0.5rem" }}>
+        <a href="/notion" style={{ color: "#2383e2", textDecoration: "underline" }}>
+          Notion 보기 →
+        </a>
+        에서 연동된 페이지·DB를 검색하고 열 수 있습니다.
+      </p>
+      <p style={{ marginBottom: "1.5rem" }}>
+        <a href="/notion-ollama" style={{ color: "#2383e2", textDecoration: "underline" }}>
+          Notion 목록 + Ollama 샘플 →
+        </a>
+        에서 Notion 목록을 가져와 Ollama가 요약·분류·우선순위를 해줍니다.
       </p>
       <form onSubmit={handleSubmit}>
         <input
