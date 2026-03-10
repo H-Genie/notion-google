@@ -1,10 +1,23 @@
-import type { SimpleRow } from "./page";
+import dayjs from "dayjs"
+import type { SimpleRow } from "./page"
+
+function formatDateWithOptionalTime(
+  value: string | null | undefined
+): string {
+  if (value == null) return "—"
+  const d = dayjs(value)
+  const hasTime =
+    d.hour() !== 0 || d.minute() !== 0 || d.second() !== 0
+  return hasTime
+    ? d.format("YYYY-MM-DD HH:mm")
+    : d.format("YYYY-MM-DD")
+}
 
 type TestTableProps = {
-  rows: SimpleRow[];
-  loading: boolean;
-  error: string | null;
-};
+  rows: SimpleRow[]
+  loading: boolean
+  error: string | null
+}
 
 export function TestTable({ rows, loading, error }: TestTableProps) {
   return (
@@ -13,7 +26,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
         maxWidth: 960,
         margin: "2rem auto",
         padding: "0 1rem",
-        fontSize: "0.9rem",
+        fontSize: "0.9rem"
       }}
     >
       <h1 style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>
@@ -36,14 +49,14 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
           style={{
             overflowX: "auto",
             border: "1px solid #e0e0e0",
-            borderRadius: 8,
+            borderRadius: 8
           }}
         >
           <table
             style={{
               width: "100%",
               borderCollapse: "collapse",
-              minWidth: 640,
+              minWidth: 640
             }}
           >
             <thead>
@@ -53,7 +66,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                     padding: "0.6rem 0.75rem",
                     textAlign: "left",
                     borderBottom: "1px solid #e0e0e0",
-                    whiteSpace: "nowrap",
+                    whiteSpace: "nowrap"
                   }}
                 >
                   날짜
@@ -62,7 +75,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                   style={{
                     padding: "0.6rem 0.75rem",
                     textAlign: "left",
-                    borderBottom: "1px solid #e0e0e0",
+                    borderBottom: "1px solid #e0e0e0"
                   }}
                 >
                   제목
@@ -72,7 +85,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                     padding: "0.6rem 0.75rem",
                     textAlign: "left",
                     borderBottom: "1px solid #e0e0e0",
-                    whiteSpace: "nowrap",
+                    whiteSpace: "nowrap"
                   }}
                 >
                   수정일자
@@ -82,7 +95,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                     padding: "0.6rem 0.75rem",
                     textAlign: "left",
                     borderBottom: "1px solid #e0e0e0",
-                    whiteSpace: "nowrap",
+                    whiteSpace: "nowrap"
                   }}
                 >
                   링크
@@ -90,21 +103,21 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map(row => (
                 <tr key={row.id} style={{ borderBottom: "1px solid #eee" }}>
                   <td
                     style={{
                       padding: "0.55rem 0.75rem",
                       verticalAlign: "top",
-                      whiteSpace: "nowrap",
+                      whiteSpace: "nowrap"
                     }}
                   >
-                    {row.date ?? "—"}
+                    {formatDateWithOptionalTime(row.date)}
                   </td>
                   <td
                     style={{
                       padding: "0.55rem 0.75rem",
-                      verticalAlign: "top",
+                      verticalAlign: "top"
                     }}
                   >
                     {row.title}
@@ -113,16 +126,16 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                     style={{
                       padding: "0.55rem 0.75rem",
                       verticalAlign: "top",
-                      whiteSpace: "nowrap",
+                      whiteSpace: "nowrap"
                     }}
                   >
-                    {row.lastEdited ?? "—"}
+                    {formatDateWithOptionalTime(row.lastEdited)}
                   </td>
                   <td
                     style={{
                       padding: "0.55rem 0.75rem",
                       verticalAlign: "top",
-                      whiteSpace: "nowrap",
+                      whiteSpace: "nowrap"
                     }}
                   >
                     {row.url ? (
@@ -130,7 +143,10 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                         href={row.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ color: "#2383e2", textDecoration: "underline" }}
+                        style={{
+                          color: "#2383e2",
+                          textDecoration: "underline"
+                        }}
                       >
                         열기
                       </a>
@@ -145,6 +161,5 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
         </div>
       )}
     </main>
-  );
+  )
 }
-
