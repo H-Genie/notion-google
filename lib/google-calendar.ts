@@ -1,7 +1,7 @@
 import { calendar } from "@googleapis/calendar";
 import { JWT } from "google-auth-library";
 
-const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
 
 function getAuthClient(): JWT | null {
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
@@ -104,4 +104,84 @@ export async function addEventToCalendar(
     id: data.id,
     htmlLink: data.htmlLink ?? null,
   };
+}
+
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  start: string | null;
+  end: string | null;
+  isAllDay: boolean;
+  htmlLink: string | null;
+  description: string | null;
+  location: string | null;
+};
+
+/**
+ * 캘린더에서 이벤트 목록 조회
+ * @param options timeMin/timeMax: ISO 날짜시간 문자열, maxResults: 최대 조회 건수
+ */
+export async function listCalendarEvents(options?: {
+  timeMin?: string;
+  timeMax?: string;
+  maxResults?: number;
+}): Promise<CalendarEvent[]> {
+  const auth = getAuthClient();
+  const calendarId = process.env.GOOGLE_CALENDAR_ID ?? "primary";
+
+  if (!auth) {
+    throw new Error(
+      "GOOGLE_SERVICE_ACCOUNT_JSON이 설정되지 않았습니다. .env.local에 추가하세요."
+    );
+  }
+
+  const cal = calendar({ version: "v3", auth });
+
+  const res = await cal.events.list({
+    calendarId,
+    timeMin: options?.timeMin ?? new Date().toISOString(),
+    maxResults: options?.maxResults ?? 50,
+    singleEvents: true,
+    orderBy: "startTime",
+    ...(options?.timeMax ? { timeMax: options.timeMax } : {}),
+  });
+
+  const items = res.data.items ?? [];
+
+  return items.map((item) => {
+    const startRaw = item.start?.dateTime ?? item.start?.date ?? null;
+    const endRaw = item.end?.dateTime ?? item.end?.date ?? null;
+    const isAllDay = Boolean(item.start?.date && !item.start?.dateTime);
+
+    return {
+      id: item.id ?? "",
+      title: item.summary ?? "(제목 없음)",
+      start: startRaw,
+      end: endRaw,
+      isAllDay,
+      htmlLink: item.htmlLink ?? null,
+      description: item.description ?? null,
+      location: item.location ?? null,
+    };
+  });
+}
+
+export async function deleteCalendarEvent(eventId: string): Promise<void> {
+  const auth = getAuthClient();
+  const calendarId = process.env.GOOGLE_CALENDAR_ID ?? "primary";
+
+  if (!auth) {
+    throw new Error(
+      "GOOGLE_SERVICE_ACCOUNT_JSON이 설정되지 않았습니다. .env.local에 추가하세요."
+    );
+  }
+  if (!eventId || eventId.trim() === "") {
+    throw new Error("삭제할 eventId가 필요합니다.");
+  }
+
+  const cal = calendar({ version: "v3", auth });
+  await cal.events.delete({
+    calendarId,
+    eventId: eventId.trim(),
+  });
 }
