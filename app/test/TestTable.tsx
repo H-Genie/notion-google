@@ -22,15 +22,25 @@ type TestTableProps = {
   error: string | null
 }
 
+const DURATION_OPTIONS = [
+  { label: "기본 (1시간)", value: 0 },
+  { label: "30분", value: 30 },
+  { label: "1시간", value: 60 },
+  { label: "2시간", value: 120 },
+]
+
 export function TestTable({ rows, loading, error }: TestTableProps) {
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addError, setAddError] = useState<string | null>(null)
+  // rowId → 선택된 분(0 = 기본)
+  const [durations, setDurations] = useState<Record<string, number>>({})
 
   async function handleAddToCalendar(row: SimpleRow) {
     if (!row.date) {
       setAddError("날짜가 없는 항목은 캘린더에 추가할 수 없습니다.")
       return
     }
+    const durationMinutes = durations[row.id] ?? 0
     setAddingId(row.id)
     setAddError(null)
     try {
@@ -41,6 +51,8 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
           title: row.title,
           date: row.date,
           description: row.url ? `Notion: ${row.url}` : undefined,
+          location: row.location ? row.location.trim() : undefined,
+          ...(durationMinutes > 0 ? { durationMinutes } : {}),
         }),
       })
       const data = await res.json()
@@ -149,6 +161,16 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                     whiteSpace: "nowrap"
                   }}
                 >
+                  소요시간
+                </th>
+                <th
+                  style={{
+                    padding: "0.6rem 0.75rem",
+                    textAlign: "center",
+                    borderBottom: "1px solid #e0e0e0",
+                    whiteSpace: "nowrap"
+                  }}
+                >
                   구글 캘린더
                 </th>
               </tr>
@@ -203,6 +225,43 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                       </a>
                     ) : (
                       "—"
+                    )}
+                  </td>
+                  <td
+                    style={{
+                      padding: "0.55rem 0.75rem",
+                      verticalAlign: "top",
+                      textAlign: "center",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {row.date && /T/.test(row.date) ? (
+                      <select
+                        value={durations[row.id] ?? 0}
+                        onChange={e =>
+                          setDurations(prev => ({
+                            ...prev,
+                            [row.id]: Number(e.target.value),
+                          }))
+                        }
+                        disabled={addingId !== null}
+                        style={{
+                          padding: "0.3rem 0.4rem",
+                          fontSize: "0.8rem",
+                          border: "1px solid #ddd",
+                          borderRadius: 4,
+                          background: "#fff",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {DURATION_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span style={{ color: "#bbb", fontSize: "0.8rem" }}>—</span>
                     )}
                   </td>
                   <td

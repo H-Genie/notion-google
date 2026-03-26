@@ -11,6 +11,7 @@ export type SimpleRow = {
   date: string | null;
   lastEdited: string | null;
   url: string | null;
+  location: string | null;
 };
 
 export default function TestPage() {
@@ -43,7 +44,6 @@ export default function TestPage() {
           entries.find(([, p]) => p?.type === "title")?.[0] ?? null;
         const dateProp =
           entries.find(([, p]) => p?.type === "date")?.[0] ?? null;
-
         const simpleRows: SimpleRow[] = (data.rows ?? []).map((row: any) => {
           const properties = row.properties ?? {};
           const titleVal = titleProp ? (properties as any)[titleProp] : null;
@@ -64,12 +64,16 @@ export default function TestPage() {
 
           const url: string | null = (row as any).url ?? null;
 
+          const location: string | null =
+            (properties as any)["장소"]?.rich_text?.[0]?.text?.content?.trim() || null;
+
           return {
             id: row.id,
             title,
             date,
             lastEdited,
             url,
+            location,
           };
         });
 

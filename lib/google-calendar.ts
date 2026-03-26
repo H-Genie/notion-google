@@ -37,7 +37,9 @@ export function isGoogleCalendarConfigured(): boolean {
 export async function addEventToCalendar(
   title: string,
   date: string,
-  description?: string
+  description?: string,
+  durationMinutes?: number,
+  location?: string
 ): Promise<{ id: string; htmlLink: string | null }> {
   const auth = getAuthClient();
   const calendarId = process.env.GOOGLE_CALENDAR_ID ?? "primary";
@@ -59,8 +61,9 @@ export async function addEventToCalendar(
   if (isAllDay) {
     endDate.setDate(endDate.getDate() + 1);
   } else {
-    // 시간이 있으면 1시간 기본 길이
-    endDate.setHours(endDate.getHours() + 1);
+    // durationMinutes가 지정된 경우 해당 분만큼, 아니면 기본 1시간(60분)
+    const minutes = durationMinutes && durationMinutes > 0 ? durationMinutes : 60;
+    endDate.setTime(endDate.getTime() + minutes * 60 * 1000);
   }
 
   const eventBody: import("@googleapis/calendar/build/v3").calendar_v3.Schema$Event =
@@ -68,6 +71,7 @@ export async function addEventToCalendar(
       ? {
           summary: title,
           description: description ?? undefined,
+          location: location ?? undefined,
           start: {
             date: startDate.toISOString().slice(0, 10),
             timeZone,
@@ -76,10 +80,12 @@ export async function addEventToCalendar(
             date: endDate.toISOString().slice(0, 10),
             timeZone,
           },
+          reminders: { useDefault: false, overrides: [] },
         }
       : {
           summary: title,
           description: description ?? undefined,
+          location: location ?? undefined,
           start: {
             dateTime: startDate.toISOString(),
             timeZone,
@@ -88,6 +94,7 @@ export async function addEventToCalendar(
             dateTime: endDate.toISOString(),
             timeZone,
           },
+          reminders: { useDefault: false, overrides: [] },
         };
 
   const res = await cal.events.insert({

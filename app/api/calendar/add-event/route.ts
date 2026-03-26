@@ -20,7 +20,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { title?: string; date?: string; description?: string };
+  let body: {
+    title?: string;
+    date?: string;
+    description?: string;
+    durationMinutes?: number;
+    location?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -30,7 +36,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { title, date, description } = body;
+  const { title, date, description, durationMinutes, location } = body;
   if (!title || typeof title !== "string" || title.trim() === "") {
     return NextResponse.json(
       { error: "title(제목)이 필요합니다." },
@@ -48,7 +54,9 @@ export async function POST(request: NextRequest) {
     const result = await addEventToCalendar(
       title.trim(),
       date.trim(),
-      typeof description === "string" ? description.trim() || undefined : undefined
+      typeof description === "string" ? description.trim() || undefined : undefined,
+      typeof durationMinutes === "number" && durationMinutes > 0 ? durationMinutes : undefined,
+      typeof location === "string" ? location.trim() || undefined : undefined
     );
     return NextResponse.json({
       ok: true,
