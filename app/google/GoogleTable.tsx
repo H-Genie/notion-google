@@ -1,16 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import dayjs from "dayjs"
+import type { CalendarEvent } from "./page"
 
-type CalendarEvent = {
-  id: string
-  title: string
-  start: string | null
-  end: string | null
-  isAllDay: boolean
-  htmlLink: string | null
-  description: string | null
+type GoogleTableProps = {
+  events: CalendarEvent[]
+  loading: boolean
+  error: string | null
+  deletingId: string | null
+  onDeleteEvent: (eventId: string) => void
 }
 
 function formatEventDate(value: string | null, isAllDay: boolean): string {
@@ -19,60 +17,13 @@ function formatEventDate(value: string | null, isAllDay: boolean): string {
   return isAllDay ? d.format("YYYY-MM-DD") : d.format("YYYY-MM-DD HH:mm")
 }
 
-export default function GoogleCalendarPage() {
-  const [events, setEvents] = useState<CalendarEvent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await fetch("/api/calendar/events")
-        const data = await res.json()
-        if (!res.ok) {
-          setError(data.error ?? "이벤트 조회에 실패했습니다.")
-          setEvents([])
-          return
-        }
-        setEvents(data.events ?? [])
-      } catch {
-        setError("요청 중 오류가 발생했습니다.")
-        setEvents([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
-
-  async function handleDeleteEvent(eventId: string) {
-    const ok = window.confirm("이 이벤트를 삭제할까요?")
-    if (!ok) return
-
-    setDeletingId(eventId)
-    setError(null)
-    try {
-      const res = await fetch("/api/calendar/delete-event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId })
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error ?? "이벤트 삭제에 실패했습니다.")
-        return
-      }
-      setEvents(prev => prev.filter(event => event.id !== eventId))
-    } catch {
-      setError("요청 중 오류가 발생했습니다.")
-    } finally {
-      setDeletingId(null)
-    }
-  }
-
+export function GoogleTable({
+  events,
+  loading,
+  error,
+  deletingId,
+  onDeleteEvent
+}: GoogleTableProps) {
   return (
     <main
       style={{
@@ -82,9 +33,7 @@ export default function GoogleCalendarPage() {
         fontSize: "0.9rem"
       }}
     >
-      <h1 style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>
-        구글 캘린더 일정
-      </h1>
+      <h1 style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>구글 캘린더</h1>
       <p style={{ color: "#666", marginBottom: "0.75rem" }}>
         현재 등록된 캘린더 이벤트를 최대 50건까지 보여줍니다.
       </p>
@@ -193,18 +142,6 @@ export default function GoogleCalendarPage() {
                     }}
                   >
                     {event.title}
-                    {/* {event.description && (
-                      <div
-                        style={{
-                          marginTop: "0.2rem",
-                          fontSize: "0.78rem",
-                          color: "#888",
-                          whiteSpace: "pre-line"
-                        }}
-                      >
-                        {event.description}
-                      </div>
-                    )} */}
                   </td>
                   <td
                     style={{
@@ -240,7 +177,7 @@ export default function GoogleCalendarPage() {
                   >
                     <button
                       type="button"
-                      onClick={() => handleDeleteEvent(event.id)}
+                      onClick={() => onDeleteEvent(event.id)}
                       disabled={deletingId !== null}
                       style={{
                         padding: "0.35rem 0.6rem",

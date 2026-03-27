@@ -4,19 +4,14 @@ import { useState } from "react"
 import dayjs from "dayjs"
 import type { SimpleRow } from "./page"
 
-function formatDateWithOptionalTime(
-  value: string | null | undefined
-): string {
+function formatDateWithOptionalTime(value: string | null | undefined): string {
   if (value == null) return "—"
   const d = dayjs(value)
-  const hasTime =
-    d.hour() !== 0 || d.minute() !== 0 || d.second() !== 0
-  return hasTime
-    ? d.format("YYYY-MM-DD HH:mm")
-    : d.format("YYYY-MM-DD")
+  const hasTime = d.hour() !== 0 || d.minute() !== 0 || d.second() !== 0
+  return hasTime ? d.format("YYYY-MM-DD HH:mm") : d.format("YYYY-MM-DD")
 }
 
-type TestTableProps = {
+type NotionTableProps = {
   rows: SimpleRow[]
   loading: boolean
   error: string | null
@@ -26,10 +21,10 @@ const DURATION_OPTIONS = [
   { label: "기본 (1시간)", value: 0 },
   { label: "30분", value: 30 },
   { label: "1시간", value: 60 },
-  { label: "2시간", value: 120 },
+  { label: "2시간", value: 120 }
 ]
 
-export function TestTable({ rows, loading, error }: TestTableProps) {
+export function NotionTable({ rows, loading, error }: NotionTableProps) {
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addError, setAddError] = useState<string | null>(null)
   // rowId → 선택된 분(0 = 기본)
@@ -44,7 +39,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
     setAddingId(row.id)
     setAddError(null)
     try {
-      const res = await fetch("/api/calendar/add-event", {
+      const res = await fetch("/api/google/add-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -52,8 +47,8 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
           date: row.date,
           description: row.url ? `Notion: ${row.url}` : undefined,
           location: row.location ? row.location.trim() : undefined,
-          ...(durationMinutes > 0 ? { durationMinutes } : {}),
-        }),
+          ...(durationMinutes > 0 ? { durationMinutes } : {})
+        })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -80,7 +75,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
       }}
     >
       <h1 style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>
-        Notion DB 테스트
+        Notion 캘린더
       </h1>
       <p style={{ color: "#666", marginBottom: "0.75rem" }}>
         오늘 날짜 이후 데이터만 간단한 표로 보여줍니다.
@@ -90,7 +85,9 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
         <div style={{ color: "crimson", marginBottom: "0.75rem" }}>{error}</div>
       )}
       {addError && (
-        <div style={{ color: "crimson", marginBottom: "0.75rem" }}>{addError}</div>
+        <div style={{ color: "crimson", marginBottom: "0.75rem" }}>
+          {addError}
+        </div>
       )}
 
       {loading ? (
@@ -241,7 +238,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                         onChange={e =>
                           setDurations(prev => ({
                             ...prev,
-                            [row.id]: Number(e.target.value),
+                            [row.id]: Number(e.target.value)
                           }))
                         }
                         disabled={addingId !== null}
@@ -251,7 +248,7 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                           border: "1px solid #ddd",
                           borderRadius: 4,
                           background: "#fff",
-                          cursor: "pointer",
+                          cursor: "pointer"
                         }}
                       >
                         {DURATION_OPTIONS.map(opt => (
@@ -261,7 +258,9 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                         ))}
                       </select>
                     ) : (
-                      <span style={{ color: "#bbb", fontSize: "0.8rem" }}>—</span>
+                      <span style={{ color: "#bbb", fontSize: "0.8rem" }}>
+                        —
+                      </span>
                     )}
                   </td>
                   <td
@@ -279,7 +278,10 @@ export function TestTable({ rows, loading, error }: TestTableProps) {
                       style={{
                         padding: "0.35rem 0.6rem",
                         fontSize: "0.8rem",
-                        cursor: addingId !== null || !row.date ? "not-allowed" : "pointer",
+                        cursor:
+                          addingId !== null || !row.date
+                            ? "not-allowed"
+                            : "pointer",
                         border: "1px solid #ddd",
                         borderRadius: 4,
                         background: "#fff",

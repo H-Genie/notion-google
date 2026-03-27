@@ -5,7 +5,7 @@ import {
 } from "@/lib/google-calendar";
 
 /**
- * GET /api/calendar/events?timeMin=ISO&timeMax=ISO&maxResults=50
+ * GET /api/google/events?timeMin=ISO&timeMax=ISO&maxResults=50
  */
 export async function GET(request: NextRequest) {
   if (!isGoogleCalendarConfigured()) {

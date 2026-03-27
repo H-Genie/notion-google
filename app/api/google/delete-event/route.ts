@@ -5,7 +5,7 @@ import {
 } from "@/lib/google-calendar";
 
 /**
- * POST /api/calendar/delete-event
+ * POST /api/google/delete-event
  * Body: { eventId: string }
  */
 export async function POST(request: NextRequest) {

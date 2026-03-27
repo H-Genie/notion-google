@@ -5,7 +5,7 @@ import {
 } from "@/lib/google-calendar";
 
 /**
- * POST /api/calendar/add-event
+ * POST /api/google/add-event
  * Body: { title: string, date: string, description?: string }
  * - date: YYYY-MM-DD 또는 ISO 날짜시간
  */
