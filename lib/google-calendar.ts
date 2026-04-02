@@ -52,33 +52,78 @@ export async function addEventToCalendar(
 
   const cal = calendar({ version: "v3", auth });
   const timeZone = process.env.TZ ?? "Asia/Seoul";
+  const rawDate = date.trim();
 
   // date가 날짜만(YYYY-MM-DD)이면 종일 이벤트, 시간 포함이면 dateTime 사용
-  const isAllDay = /^\d{4}-\d{2}-\d{2}$/.test(date.trim());
-  const startDate = new Date(date);
-  const endDate = new Date(startDate);
+  const isAllDay = /^\d{4}-\d{2}-\d{2}$/.test(rawDate);
 
   if (isAllDay) {
-    endDate.setDate(endDate.getDate() + 1);
-  } else {
-    // durationMinutes가 지정된 경우 해당 분만큼, 아니면 기본 1시간(60분)
-    const minutes = durationMinutes && durationMinutes > 0 ? durationMinutes : 60;
-    endDate.setTime(endDate.getTime() + minutes * 60 * 1000);
+    const [y, m, d] = rawDate.split("-").map(Number);
+    const next = new Date(Date.UTC(y, m - 1, d + 1));
+    const endDate = `${next.getUTCFullYear()}-${String(
+      next.getUTCMonth() + 1
+    ).padStart(2, "0")}-${String(next.getUTCDate()).padStart(2, "0")}`;
+
+    const eventBody: import("@googleapis/calendar/build/v3").calendar_v3.Schema$Event =
+      {
+        summary: title,
+        description: description ?? undefined,
+        location: location ?? undefined,
+        start: {
+          date: rawDate,
+        },
+        end: {
+          date: endDate,
+        },
+        reminders: { useDefault: false, overrides: [] },
+      };
+
+    const res = await cal.events.insert({
+      calendarId,
+      requestBody: eventBody,
+    });
+
+    const data = res.data;
+    if (!data.id) {
+      throw new Error("캘린더 이벤트 생성 후 ID를 받지 못했습니다.");
+    }
+
+    return {
+      id: data.id,
+      htmlLink: data.htmlLink ?? null,
+    };
   }
 
+  const startDate = new Date(rawDate);
+  if (Number.isNaN(startDate.getTime())) {
+    throw new Error("date 형식이 올바르지 않습니다.");
+  }
+  const endDate = new Date(startDate);
+
+  // durationMinutes가 지정된 경우 해당 분만큼, 아니면 기본 1시간(60분)
+  const minutes = durationMinutes && durationMinutes > 0 ? durationMinutes : 60;
+  endDate.setTime(endDate.getTime() + minutes * 60 * 1000);
+
+  // 입력에 오프셋/Z가 있으면 dateTime만 전송, 없으면 timeZone과 함께 로컬 datetime 전송
+  const hasOffset = /(?:[zZ]|[+-]\d{2}:\d{2})$/.test(rawDate);
+  const toLocalDateTime = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate()
+    ).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}:${String(
+      d.getMinutes()
+    ).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
+
   const eventBody: import("@googleapis/calendar/build/v3").calendar_v3.Schema$Event =
-    isAllDay
+    hasOffset
       ? {
           summary: title,
           description: description ?? undefined,
           location: location ?? undefined,
           start: {
-            date: startDate.toISOString().slice(0, 10),
-            timeZone,
+            dateTime: startDate.toISOString(),
           },
           end: {
-            date: endDate.toISOString().slice(0, 10),
-            timeZone,
+            dateTime: endDate.toISOString(),
           },
           reminders: { useDefault: false, overrides: [] },
         }
@@ -87,11 +132,11 @@ export async function addEventToCalendar(
           description: description ?? undefined,
           location: location ?? undefined,
           start: {
-            dateTime: startDate.toISOString(),
+            dateTime: toLocalDateTime(startDate),
             timeZone,
           },
           end: {
-            dateTime: endDate.toISOString(),
+            dateTime: toLocalDateTime(endDate),
             timeZone,
           },
           reminders: { useDefault: false, overrides: [] },
