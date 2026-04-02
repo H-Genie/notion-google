@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { GoogleTable } from "./GoogleTable"
+import { GoogleTable } from "@/app/components/GoogleTable"
 
 export type CalendarEvent = {
   id: string

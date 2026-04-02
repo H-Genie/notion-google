@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import { Nav } from "@/app/components/Nav"
 
 export const metadata: Metadata = {
   title: "Notion to Google"
@@ -22,27 +22,7 @@ export default function RootLayout({
             zIndex: 10
           }}
         >
-          <nav
-            style={{
-              maxWidth: 960,
-              margin: "0 auto",
-              padding: "0.85rem 1rem",
-              display: "flex",
-              gap: "0.75rem",
-              alignItems: "center"
-            }}
-          >
-            <Link href="/" style={{ color: "#1f2937", textDecoration: "none" }}>
-              노션
-            </Link>
-            <span style={{ color: "#bbb" }}>|</span>
-            <Link
-              href="/google"
-              style={{ color: "#1f2937", textDecoration: "none" }}
-            >
-              구글
-            </Link>
-          </nav>
+          <Nav />
         </header>
         {children}
       </body>

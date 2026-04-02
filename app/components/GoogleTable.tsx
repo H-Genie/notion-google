@@ -1,7 +1,7 @@
 "use client"
 
 import dayjs from "dayjs"
-import type { CalendarEvent } from "./page"
+import type { CalendarEvent } from "@/app/google/page"
 
 type GoogleTableProps = {
   events: CalendarEvent[]

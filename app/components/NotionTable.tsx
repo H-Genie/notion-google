@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import dayjs from "dayjs"
-import type { SimpleRow } from "./page"
+import type { SimpleRow } from "@/app/page"
 
 function formatDateWithOptionalTime(value: string | null | undefined): string {
   if (value == null) return "—"
@@ -27,7 +27,6 @@ const DURATION_OPTIONS = [
 export function NotionTable({ rows, loading, error }: NotionTableProps) {
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addError, setAddError] = useState<string | null>(null)
-  // rowId → 선택된 분(0 = 기본)
   const [durations, setDurations] = useState<Record<string, number>>({})
 
   async function handleAddToCalendar(row: SimpleRow) {
@@ -58,7 +57,7 @@ export function NotionTable({ rows, loading, error }: NotionTableProps) {
       if (data.htmlLink) {
         window.open(data.htmlLink, "_blank")
       }
-    } catch (e) {
+    } catch {
       setAddError("요청 중 오류가 발생했습니다.")
     } finally {
       setAddingId(null)

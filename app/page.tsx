@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { NotionTable } from "./NotionTable"
+import { NotionTable } from "@/app/components/NotionTable"
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_DATABASE_ID
 
