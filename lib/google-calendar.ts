@@ -205,11 +205,30 @@ export async function listCalendarEvents(options?: {
     const endRaw = item.end?.dateTime ?? item.end?.date ?? null;
     const isAllDay = Boolean(item.start?.date && !item.start?.dateTime);
 
+    // Google all-day events use end.date as "exclusive".
+    // For example, a one-day event on 2026-04-02 comes as:
+    //   start.date = 2026-04-02, end.date = 2026-04-03
+    // We convert it to inclusive for our UI: end.date -> 2026-04-02
+    const convertEndForAllDay = () => {
+      if (!isAllDay) return endRaw;
+      if (!startRaw || !endRaw) return endRaw;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(startRaw)) return endRaw;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(endRaw)) return endRaw;
+
+      // endRaw is exclusive for all-day events.
+      const [ey, em, ed] = endRaw.split("-").map(Number);
+      const dt = new Date(Date.UTC(ey, em - 1, ed));
+      dt.setUTCDate(dt.getUTCDate() - 1);
+      return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+    };
+
+    const adjustedEnd = convertEndForAllDay();
+
     return {
       id: item.id ?? "",
       title: item.summary ?? "(제목 없음)",
       start: startRaw,
-      end: endRaw,
+      end: adjustedEnd,
       isAllDay,
       htmlLink: item.htmlLink ?? null,
       description: item.description ?? null,

@@ -1,11 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 export function Nav() {
   const router = useRouter()
+  const pathname = usePathname()
   const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export function Nav() {
         setLoggedIn(false)
       }
     })()
-  }, [])
+  }, [pathname])
 
   async function handleLogout() {
     try {
